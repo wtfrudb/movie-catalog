@@ -2,18 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Container, Card, Button, Modal, ListGroup, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
-interface Movie {
-  id: number;
-  title: string;
-  description: string;
-}
-
 interface RentalItem {
   id: number;
   movieId: number;
   quantity: number;
   movieTitle: string;
   movieDescription: string;
+  releaseYear: number;
+  returnDate: string | null; // nullable, т.к. может быть null
 }
 
 interface RentalOrder {
@@ -86,7 +82,7 @@ export default function OrdersPage() {
 
   const handleCancelOrder = async () => {
     if (!selectedOrder) return;
-    const confirmed = window.confirm('Are you sure you want to cancel this order?');
+    const confirmed = window.confirm('Вы уверены, что хотите отменить заказ?');
     if (!confirmed) return;
 
     try {
@@ -103,13 +99,13 @@ export default function OrdersPage() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(errorText || `Failed to cancel order`);
+        throw new Error(errorText || `Не удалось отменить заказ`);
       }
 
       setOrders(prev => prev.filter(o => o.id !== selectedOrder.id));
       handleCloseModal();
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Error cancelling order');
+      alert(error instanceof Error ? error.message : 'Ошибка отмены заказа');
     } finally {
       setDeleting(false);
     }
@@ -119,7 +115,7 @@ export default function OrdersPage() {
     return (
       <Container className="text-center mt-5">
         <Spinner animation="border" />
-        <p>Loading orders...</p>
+        <p>Загрузка заказов...</p>
       </Container>
     );
   }
@@ -128,10 +124,10 @@ export default function OrdersPage() {
     return (
       <Container className="mt-3">
         <Alert variant="danger">
-          <Alert.Heading>Error loading orders</Alert.Heading>
+          <Alert.Heading>Ошибка загрузки заказов</Alert.Heading>
           <p>{error}</p>
           <Button variant="primary" onClick={() => window.location.reload()}>
-            Try Again
+            Попробуйте снова
           </Button>
         </Alert>
       </Container>
@@ -140,23 +136,24 @@ export default function OrdersPage() {
 
   return (
     <Container className="mt-4">
-      <h2 className="mb-4">My Orders</h2>
+      <h2 className="mb-4">Мои заказы</h2>
 
       {orders.length === 0 ? (
-        <Alert variant="info">You don't have any orders yet</Alert>
+        <Alert variant="info">У вас еще нет заказов</Alert>
       ) : (
         orders.map((order) => (
           <Card
             key={order.id}
             className="mb-3 shadow-sm"
             onClick={() => handleOpenModal(order)}
-            style={{ cursor: 'pointer' }}
+            style={{ backgroundColor: 'pink', color: 'dark', borderColor: 'pink' }}
+          
           >
             <Card.Body>
-              <Card.Title>Order #{order.id}</Card.Title>
+              <Card.Title>Заказ №{order.id}</Card.Title>
               <Card.Text>
-                <strong>Date:</strong> {new Date(order.rentalDate).toLocaleString()}<br />
-                <strong>Items:</strong>{' '}
+                <strong>Дата:</strong> {new Date(order.rentalDate).toLocaleString()}<br />
+                <strong>Фильмы:</strong>{' '}
                 {order.items && Array.isArray(order.items)
                   ? order.items.reduce((sum, item) => sum + item.quantity, 0)
                   : 0}
@@ -168,30 +165,27 @@ export default function OrdersPage() {
 
       <Modal show={showModal} onHide={handleCloseModal} centered size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Order Details #{selectedOrder?.id}</Modal.Title>
+          <Modal.Title>Заказ №{selectedOrder?.id}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedOrder ? (
             <>
-              <p><strong>Order Date:</strong> {new Date(selectedOrder.rentalDate).toLocaleString()}</p>
+              <p><strong>Дата заказа:</strong> {new Date(selectedOrder.rentalDate).toLocaleString()}</p>
               {selectedOrder.items && selectedOrder.items.length > 0 ? (
                 <ListGroup variant="flush">
                   {selectedOrder.items.map((item) => (
-                    <ListGroup.Item key={item.id} className="d-flex justify-content-between align-items-center">
-                      <div>
-                      <strong>{item.movieTitle}</strong>
-                      <p className="mb-0 text-muted">
-                        {item.movieDescription.length > 50
-                          ? item.movieDescription.substring(0, 50) + '...'
-                          : item.movieDescription}
+                    <ListGroup.Item key={item.id} className="mb-3">
+                      <h5>{item.movieTitle} ({item.releaseYear})</h5>
+                      <p>{item.movieDescription}</p>
+                      <p><strong>Количество:</strong> {item.quantity}</p>
+                      <p><strong>Дата возврата:</strong>{' '}
+                        {item.returnDate ? new Date(item.returnDate).toLocaleDateString() : 'Не установлена'}
                       </p>
-                      </div>
-                      <span className="badge bg-primary rounded-pill">x{item.quantity}</span>
                     </ListGroup.Item>
                   ))}
                 </ListGroup>
               ) : (
-                <p>No items in this order.</p>
+                <p>Нет объектов в этом заказе.</p>
               )}
             </>
           ) : (
@@ -199,11 +193,17 @@ export default function OrdersPage() {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="danger" onClick={handleCancelOrder} disabled={deleting}>
-            {deleting ? 'Cancelling...' : 'Cancel Order'}
+          <Button 
+            variant="outline-light"
+            style={{ backgroundColor: 'black', color: 'pink', borderColor: 'black' }}
+            onClick={handleCancelOrder} disabled={deleting}>
+              {deleting ? 'Отмена...' : 'Отменить заказ'}
           </Button>
-          <Button variant="secondary" onClick={handleCloseModal} disabled={deleting}>
-            Close
+          <Button 
+            variant="outline-light"
+            style={{ backgroundColor: 'pink', color: 'black', borderColor: 'pink' }}
+            onClick={handleCloseModal} disabled={deleting}>
+              Закрыть
           </Button>
         </Modal.Footer>
       </Modal>

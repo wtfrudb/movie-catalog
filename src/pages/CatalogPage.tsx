@@ -9,7 +9,7 @@ const CatalogPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<MovieType | null>(null);
   const [message, setMessage] = useState<string | null>(null); // ⬅️ уведомление
-
+  
   const { addToCart } = useCart(); 
 
   const handleAddToCart = (movie: Movie) => {

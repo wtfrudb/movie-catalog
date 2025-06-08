@@ -114,6 +114,17 @@ const Register: React.FC = () => {
           >
             {isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}
           </Button>
+
+          <div className="text-center d-flex justify-content-center align-items-center">
+            <p className="mb-0">Уже есть аккаунт?&nbsp;</p>
+            <Button
+              variant="link"
+              style={{ color: 'black', padding: 1, lineHeight: 3 }}
+              onClick={() => navigate('/login')}
+            >
+              Войти
+            </Button>
+          </div>
         </Form>
       </Card.Body>
     </Card>

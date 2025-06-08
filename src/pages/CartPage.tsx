@@ -1,54 +1,55 @@
 import React, { useState } from 'react';
-import { Container, Button, Card, ListGroup, Alert, Row, Col } from 'react-bootstrap';
+import { Container, Button, ListGroup, Alert, Row, Col } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
   const [message, setMessage] = useState<string | null>(null);
+  const [rentalDate, setRentalDate] = useState("");
+
   const navigate = useNavigate();
 
   const handleCheckout = async () => {
-    const token = localStorage.getItem('token');
-    const userId = Number(localStorage.getItem('userId'));
-
+    const token = localStorage.getItem("token");
     if (!token) {
-      navigate('/login');
+      alert("Вы не авторизованы");
       return;
     }
-
-    if (cart.length === 0) {
-      setMessage("Корзина пуста");
+  
+    if (!rentalDate) {
+      alert("Пожалуйста, выберите дату аренды");
       return;
     }
-
+  
     try {
-      const response = await fetch('/api/rental/create', {
-        method: 'POST',
+      const response = await fetch("https://localhost:7020/api/rental/create", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId,
           items: cart.map(item => ({
             movieId: item.movie.id,
-            quantity: item.quantity
-          }))
-        })
+            quantity: item.quantity,
+            returnDate: rentalDate, // добавлено поле с датой аренды/возврата
+          })),
+        }),
       });
-
+  
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `HTTP error! status: ${response.status}`);
+        throw new Error("Ошибка при оформлении заказа");
       }
-
-      setMessage("Заказ успешно оформлен!");
-      setTimeout(() => setMessage(null), 1500); 
+  
+      // Очистить корзину и сбросить дату аренды
       clearCart();
+      setRentalDate("");
+      setMessage("Заказ успешно оформлен!");
+  
     } catch (error) {
-      setMessage("Ошибка при оформлении заказа");
-      console.error('Ошибка:', error);
+      alert("Произошла ошибка при оформлении заказа");
+      console.error(error);
     }
   };
 
@@ -57,59 +58,77 @@ export default function CartPage() {
       <h2 className="mb-4">Корзина</h2>
 
       {message && (
-        <Alert           
-          variant="outline-light"       
+        <Alert
+          variant="outline-light"
           style={{ backgroundColor: 'pink', color: 'brown', borderColor: 'pink' }}
           onClose={() => setMessage(null)} dismissible>
-            {message}
+          {message}
         </Alert>
       )}
 
       {cart.length === 0 ? (
-        <Alert  
-          variant="outline-light"       
+        <Alert
+          variant="outline-light"
           style={{ backgroundColor: 'bg-info', color: 'brown', borderColor: 'pink' }}
-          >
-            Корзина пуста
-          </Alert>
+        >
+          Корзина пуста
+        </Alert>
       ) : (
-        <ListGroup className="mb-3">
-          {cart.map((item, index) => (
-            <ListGroup.Item key={index}>
-              <Row className="align-items-center">
-                <Col><strong>{item.movie.title}</strong></Col>
-                <Col>Кол-во: {item.quantity}</Col>
-                <Col>
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={() => updateQuantity(item.movie.id, item.quantity - 1)}
-                  >−</Button>{' '}
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={() => updateQuantity(item.movie.id, item.quantity + 1)}
-                  >+</Button>{' '}
-                  <Button
-                    variant="outline-light"
-                    style={{ backgroundColor: 'black', color: 'pink', borderColor: 'black' }}
-                    onClick={() => removeFromCart(item.movie.id)}
-                  >
-                    Удалить
-                  </Button>
-                </Col>
-              </Row>
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
-      )}
+        <>
+          <ListGroup className="mb-3">
+            {cart.map((item, index) => (
+              <ListGroup.Item key={index}>
+                <Row className="align-items-center">
+                  <Col><strong>{item.movie.title}</strong></Col>
+                  <Col>Кол-во: {item.quantity}</Col>
+                  <Col>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      onClick={() => updateQuantity(item.movie.id, item.quantity - 1)}
+                      disabled={item.quantity <= 1}
+                    >−</Button>{' '}
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      onClick={() => updateQuantity(item.movie.id, item.quantity + 1)}
+                    >+</Button>{' '}
+                    <Button
+                      variant="outline-light"
+                      style={{ backgroundColor: 'black', color: 'pink', borderColor: 'black' }}
+                      onClick={() => removeFromCart(item.movie.id)}
+                    >
+                      Удалить
+                    </Button>
+                  </Col>
+                </Row>
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
 
-      <Button
-      variant="outline-light"
-      style={{ backgroundColor: 'pink', color: 'black', borderColor: 'pink' }}
-      onClick={handleCheckout} disabled={cart.length === 0}>
-        Оформить заказ
-      </Button>
+          {/* Поле даты отображается только если есть товары в корзине */}
+          <div className="mb-3">
+            <label htmlFor="rentalDate" className="form-label">Дата аренды:</label>
+            <input
+              type="date"
+              id="rentalDate"
+              className="form-control"
+              value={rentalDate}
+              onChange={(e) => setRentalDate(e.target.value)}
+              required
+            />
+          </div>
+
+          <Button
+            variant="outline-light"
+            style={{ backgroundColor: 'pink', color: 'black', borderColor: 'pink' }}
+            onClick={handleCheckout}
+            disabled={cart.length === 0}
+          >
+            Оформить заказ
+          </Button>
+        </>
+      )}
     </Container>
   );
 }

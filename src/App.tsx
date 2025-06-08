@@ -1,17 +1,28 @@
 import React, { useEffect, useState, type JSX } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation
+} from 'react-router-dom';
+
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Catalog from './pages/CatalogPage';
 import AdminPanel from './pages/AdminPanel';
 import CartPage from './pages/CartPage';
-import OrdersPage from './pages/OrdersPage'; // <- добавляем страницу заказов
+import OrdersPage from './pages/OrdersPage';
 import { CartProvider } from './context/CartContext';
 import NavbarComponent from './components/NavbarComponent';
 
-function App() {
+function AppWrapper() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const location = useLocation();
+
+  const hideNavbarPaths = ['/login', '/register'];
+  const shouldHideNavbar = hideNavbarPaths.includes(location.pathname);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -30,70 +41,74 @@ function App() {
   };
 
   return (
+    <>
+      {!shouldHideNavbar && isAuthenticated && (
+        <NavbarComponent
+          onLogout={() => {
+            localStorage.removeItem('token');
+            setIsAuthenticated(false);
+            setIsAdmin(false);
+          }}
+        />
+      )}
+
+      <Routes>
+        <Route
+          path="/orders"
+          element={
+            <PrivateRoute>
+              <OrdersPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={<Login setIsAuthenticated={setIsAuthenticated} setIsAdmin={setIsAdmin} />}
+        />
+        <Route path="/register" element={<Register />} />
+
+        <Route
+          path="/catalog"
+          element={
+            <PrivateRoute>
+              <Catalog />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/cart"
+          element={
+            <PrivateRoute>
+              <CartPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminPanel />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="*"
+          element={<Navigate to={isAuthenticated ? (isAdmin ? '/admin' : '/catalog') : '/login'} />}
+        />
+      </Routes>
+    </>
+  );
+}
+
+export default function App() {
+  return (
     <CartProvider>
       <Router>
-        {isAuthenticated && (
-          <NavbarComponent
-            onLogout={() => {
-              localStorage.removeItem('token');
-              setIsAuthenticated(false);
-              setIsAdmin(false);
-            }}
-          />
-        )}
-
-        <Routes>
-          <Route
-            path="/orders"
-            element={
-              <PrivateRoute>
-                <>
-                <OrdersPage />
-                </>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/login"
-            element={<Login setIsAuthenticated={setIsAuthenticated} setIsAdmin={setIsAdmin} />}
-          />
-          <Route path="/register" element={<Register />} />
-
-          <Route
-            path="/catalog"
-            element={
-              <PrivateRoute>
-                <Catalog />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/cart"
-            element={
-              <PrivateRoute>
-                <CartPage />
-              </PrivateRoute>
-            }
-          />
-          
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminPanel />
-              </AdminRoute>
-            }
-          />
-
-          <Route
-            path="*"
-            element={<Navigate to={isAuthenticated ? (isAdmin ? '/admin' : '/catalog') : '/login'} />}
-          />
-        </Routes>
+        <AppWrapper />
       </Router>
     </CartProvider>
   );
 }
-
-export default App;
