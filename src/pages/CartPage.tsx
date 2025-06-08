@@ -1,57 +1,101 @@
-import { useCart } from "../context/CartContext.tsx";
-import { Button, Modal } from "react-bootstrap";
-import { useState } from "react";
+import React, { useState } from 'react';
+import { Container, Button, Card, ListGroup, Alert, Row, Col } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
-const CartPage: React.FC = () => {
-  const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+export default function CartPage() {
+  const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
+  const [message, setMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const handleCheckout = async () => {
+    const token = localStorage.getItem('token');
+    const userId = Number(localStorage.getItem('userId'));
 
-  const handleOrder = () => {
-    setShowConfirm(false);
-    clearCart();
-    setShowSuccess(true);
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    if (cart.length === 0) {
+      setMessage("Корзина пуста");
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/rental/create', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId,
+          items: cart.map(item => ({
+            movieId: item.movie.id,
+            quantity: item.quantity
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `HTTP error! status: ${response.status}`);
+      }
+
+      setMessage("Заказ успешно оформлен!");
+      clearCart();
+    } catch (error) {
+      setMessage("Ошибка при оформлении заказа");
+      console.error('Ошибка:', error);
+    }
   };
 
   return (
-    <div className="container mt-4">
-      <h2>Корзина</h2>
-      {cart.length === 0 ? <p>Корзина пуста</p> : (
-        <ul>
-          {cart.map(item => (
-            <li key={item.movie.id}>
-              {item.movie.title} — 
-              <input type="number" value={item.quantity} min={1}
-                     onChange={e => updateQuantity(item.movie.id, parseInt(e.target.value))} />
-              <Button variant="danger" onClick={() => removeFromCart(item.movie.id)}>Удалить</Button>
-            </li>
+    <Container className="mt-4">
+      <h2 className="mb-4">Корзина</h2>
+
+      {message && (
+        <Alert variant="info" onClose={() => setMessage(null)} dismissible>
+          {message}
+        </Alert>
+      )}
+
+      {cart.length === 0 ? (
+        <Alert variant="warning">Корзина пуста</Alert>
+      ) : (
+        <ListGroup className="mb-3">
+          {cart.map((item, index) => (
+            <ListGroup.Item key={index}>
+              <Row className="align-items-center">
+                <Col><strong>{item.movie.title}</strong></Col>
+                <Col>Кол-во: {item.quantity}</Col>
+                <Col>
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={() => updateQuantity(item.movie.id, item.quantity - 1)}
+                  >−</Button>{' '}
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={() => updateQuantity(item.movie.id, item.quantity + 1)}
+                  >+</Button>{' '}
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => removeFromCart(item.movie.id)}
+                  >Удалить</Button>
+                </Col>
+              </Row>
+            </ListGroup.Item>
           ))}
-        </ul>
-      )}
-      {cart.length > 0 && (
-        <Button onClick={() => setShowConfirm(true)}>Забронировать</Button>
+        </ListGroup>
       )}
 
-      <Modal show={showConfirm} onHide={() => setShowConfirm(false)}>
-        <Modal.Header closeButton><Modal.Title>Подтверждение</Modal.Title></Modal.Header>
-        <Modal.Body>Вы уверены, что хотите сделать заказ на {totalItems} фильмов?</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowConfirm(false)}>Отмена</Button>
-          <Button onClick={handleOrder}>Подтвердить</Button>
-        </Modal.Footer>
-      </Modal>
-
-      <Modal show={showSuccess} onHide={() => setShowSuccess(false)}>
-        <Modal.Header closeButton><Modal.Title>Успех</Modal.Title></Modal.Header>
-        <Modal.Body>Заказ успешно оформлен!</Modal.Body>
-        <Modal.Footer>
-          <Button onClick={() => setShowSuccess(false)}>ОК</Button>
-        </Modal.Footer>
-      </Modal>
-    </div>
+      <Button variant="success" onClick={handleCheckout} disabled={cart.length === 0}>
+        Оформить заказ
+      </Button>
+    </Container>
   );
-};
-
-export default CartPage;
+}

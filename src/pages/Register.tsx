@@ -13,15 +13,22 @@ const Register: React.FC = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+  
+    // Проверка обязательных полей
+    if (!fullName.trim() || !email.trim() || !password.trim() || !phone.trim()) {
+      alert('Пожалуйста, заполните все обязательные поля: ФИО, Email, Пароль и Телефон.');
+      return;
+    }
+  
     setIsSubmitting(true);
-
+  
     try {
       const response = await fetch('https://localhost:7020/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fullName, email, password, address, phone }),
       });
-
+  
       if (response.ok) {
         alert('Регистрация успешна! Пожалуйста, войдите.');
         navigate('/login');
@@ -36,6 +43,7 @@ const Register: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+  
 
   return (
     <Card className="mx-auto mt-5" style={{ maxWidth: '400px' }}>
@@ -82,6 +90,7 @@ const Register: React.FC = () => {
               placeholder="Введите адрес"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
+              required
             />
           </Form.Group>
 
@@ -92,6 +101,7 @@ const Register: React.FC = () => {
               placeholder="Введите телефон"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              required
             />
           </Form.Group>
 

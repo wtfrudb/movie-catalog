@@ -9,7 +9,7 @@ interface Props {
   addToCart: (movie: Movie) => void;
 }
 
-const MovieCard: React.FC<Props> = ({ movie, onClick, addToCart }) => {
+const MovieCard: React.FC<Props> = ({ movie, onClick, addToCart }) => {  
   return (
     <Card style={{ width: "18rem", margin: "1rem" }}>
       <Card.Img variant="top" src={movie.imageUrl} />

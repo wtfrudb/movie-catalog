@@ -44,6 +44,16 @@ function App() {
 
         <Routes>
           <Route
+            path="/orders"
+            element={
+              <PrivateRoute>
+                <>
+                <OrdersPage />
+                </>
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/login"
             element={<Login setIsAuthenticated={setIsAuthenticated} setIsAdmin={setIsAdmin} />}
           />
@@ -66,18 +76,7 @@ function App() {
               </PrivateRoute>
             }
           />
-
-          <Route
-            path="/orders"
-            element={
-              <PrivateRoute>
-                <>
-                <OrdersPage />
-                </>
-              </PrivateRoute>
-            }
-          />
-
+          
           <Route
             path="/admin"
             element={
