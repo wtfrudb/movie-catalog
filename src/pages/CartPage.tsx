@@ -82,10 +82,12 @@ export default function CartPage() {
                     onClick={() => updateQuantity(item.movie.id, item.quantity + 1)}
                   >+</Button>{' '}
                   <Button
-                    variant="danger"
-                    size="sm"
+                    variant="outline-light"
+                    style={{ backgroundColor: 'black', color: 'pink', borderColor: 'black' }}
                     onClick={() => removeFromCart(item.movie.id)}
-                  >Удалить</Button>
+                  >
+                    Удалить
+                  </Button>
                 </Col>
               </Row>
             </ListGroup.Item>
@@ -93,8 +95,11 @@ export default function CartPage() {
         </ListGroup>
       )}
 
-      <Button variant="success" onClick={handleCheckout} disabled={cart.length === 0}>
-        Оформить заказ
+      <Button
+        variant="outline-light"
+        style={{ backgroundColor: 'pink', color: 'black', borderColor: 'pink' }}
+        >
+          Оформить заказ
       </Button>
     </Container>
   );

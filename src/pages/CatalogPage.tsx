@@ -2,27 +2,14 @@ import React, { useEffect, useState } from "react";
 import MovieCard from "../components/MovieCard";
 import { Modal, Button } from "react-bootstrap";
 import type { Movie, Movie as MovieType } from "../types/Movie";
+import { useCart } from "../context/CartContext"; 
 
 const CatalogPage: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<MovieType | null>(null);
 
-  const handleAddToCart = (movie: Movie) => {
-    const storedCart = localStorage.getItem('cart');
-    let cart: { movie: Movie; quantity: number }[] = storedCart ? JSON.parse(storedCart) : [];
-
-    const existingItem = cart.find(item => item.movie.id === movie.id);
-
-    if (existingItem) {
-      existingItem.quantity += 1;
-    } else {
-      cart.push({ movie, quantity: 1 });
-    }
-
-    localStorage.setItem('cart', JSON.stringify(cart));
-    alert('Фильм добавлен в корзину!');
-  };
+  const { addToCart } = useCart(); 
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -54,7 +41,7 @@ const CatalogPage: React.FC = () => {
             key={movie.id}
             movie={movie}
             onClick={setSelectedMovie}
-            addToCart={handleAddToCart}
+            addToCart={() => addToCart(movie)} // ✅ вызываем addToCart из контекста
           />
         ))}
       </div>
