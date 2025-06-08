@@ -44,6 +44,7 @@ export default function CartPage() {
       }
 
       setMessage("Заказ успешно оформлен!");
+      setTimeout(() => setMessage(null), 1500); 
       clearCart();
     } catch (error) {
       setMessage("Ошибка при оформлении заказа");
@@ -56,13 +57,21 @@ export default function CartPage() {
       <h2 className="mb-4">Корзина</h2>
 
       {message && (
-        <Alert variant="info" onClose={() => setMessage(null)} dismissible>
-          {message}
+        <Alert           
+          variant="outline-light"       
+          style={{ backgroundColor: 'pink', color: 'brown', borderColor: 'pink' }}
+          onClose={() => setMessage(null)} dismissible>
+            {message}
         </Alert>
       )}
 
       {cart.length === 0 ? (
-        <Alert variant="warning">Корзина пуста</Alert>
+        <Alert  
+          variant="outline-light"       
+          style={{ backgroundColor: 'bg-info', color: 'brown', borderColor: 'pink' }}
+          >
+            Корзина пуста
+          </Alert>
       ) : (
         <ListGroup className="mb-3">
           {cart.map((item, index) => (
@@ -96,10 +105,10 @@ export default function CartPage() {
       )}
 
       <Button
-        variant="outline-light"
-        style={{ backgroundColor: 'pink', color: 'black', borderColor: 'pink' }}
-        >
-          Оформить заказ
+      variant="outline-light"
+      style={{ backgroundColor: 'pink', color: 'black', borderColor: 'pink' }}
+      onClick={handleCheckout} disabled={cart.length === 0}>
+        Оформить заказ
       </Button>
     </Container>
   );
