@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 interface Movie {
   id?: number;
   title: string;
+  description: string;
   topic: string;
   mainActors: string;
   director: string;
@@ -17,6 +18,7 @@ const AdminPanel: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [newMovie, setNewMovie] = useState<Movie>({
     title: '',
+    description: '',
     topic: '',
     mainActors: '',
     director: '',
@@ -74,6 +76,7 @@ const AdminPanel: React.FC = () => {
       // сброс формы
       setNewMovie({
         title: '',
+        description: '',
         topic: '',
         mainActors: '',
         director: '',
@@ -115,6 +118,7 @@ const AdminPanel: React.FC = () => {
       <h2>{editId ? 'Редактировать фильм' : 'Добавить фильм'}</h2>
       <form onSubmit={handleSubmit} className="mb-4">
         <input name="title" value={newMovie.title} onChange={handleChange} placeholder="Название" required />
+        <input name="description" value={newMovie.description} onChange={handleChange} placeholder="Описание" required/>
         <input name="topic" value={newMovie.topic} onChange={handleChange} placeholder="Жанр" required />
         <input name="mainActors" value={newMovie.mainActors} onChange={handleChange} placeholder="Главные актёры" />
         <input name="director" value={newMovie.director} onChange={handleChange} placeholder="Режиссёр" />

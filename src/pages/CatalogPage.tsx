@@ -2,20 +2,24 @@ import React, { useEffect, useState } from "react";
 import MovieCard from "../components/MovieCard";
 import { Modal, Button, Alert } from "react-bootstrap";
 import type { Movie, Movie as MovieType } from "../types/Movie";
-import { useCart } from "../context/CartContext"; 
+import { useCart } from "../context/CartContext";
 
-const CatalogPage: React.FC = () => {
+interface CatalogPageProps {
+  searchQuery: string;
+}
+
+const CatalogPage: React.FC<CatalogPageProps> = ({ searchQuery }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<MovieType | null>(null);
-  const [message, setMessage] = useState<string | null>(null); // ⬅️ уведомление
-  
-  const { addToCart } = useCart(); 
+  const [message, setMessage] = useState<string | null>(null);
+
+  const { addToCart } = useCart();
 
   const handleAddToCart = (movie: Movie) => {
     addToCart(movie);
     setMessage("Фильм добавлен в корзину!");
-    setTimeout(() => setMessage(null), 1500); // ⬅️ скрыть через 3 сек
+    setTimeout(() => setMessage(null), 1500);
   };
 
   useEffect(() => {
@@ -38,30 +42,41 @@ const CatalogPage: React.FC = () => {
       .catch((err) => setError(err.message));
   }, []);
 
+  // 🔍 фильтрация по названию (без учёта регистра)
+  const filteredMovies = movies.filter((movie) =>
+    movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="container mt-4">
       <h2 className="mb-4">Каталог фильмов</h2>
 
       {message && (
-        <Alert           
-          variant="outline-light"       
-          style={{ backgroundColor: 'pink', color: 'brown', borderColor: 'pink' }}
-          onClose={() => setMessage(null)} dismissible>
-            {message}
+        <Alert
+          variant="outline-light"
+          style={{ backgroundColor: "pink", color: "brown", borderColor: "pink" }}
+          onClose={() => setMessage(null)}
+          dismissible
+        >
+          {message}
         </Alert>
       )}
 
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="d-flex flex-wrap">
-        {movies.map((movie) => (
-          <MovieCard
-            key={movie.id}
-            movie={movie}
-            onClick={setSelectedMovie}
-            addToCart={() => handleAddToCart(movie)} // ⬅️ обёрнутая функция
-          />
-        ))}
+        {filteredMovies.length > 0 ? (
+          filteredMovies.map((movie) => (
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              onClick={setSelectedMovie}
+              addToCart={() => handleAddToCart(movie)}
+            />
+          ))
+        ) : (
+          <p className="text-muted">Фильмы не найдены</p>
+        )}
       </div>
 
       {selectedMovie && (

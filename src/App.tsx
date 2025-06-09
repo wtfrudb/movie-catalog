@@ -4,12 +4,12 @@ import {
   Routes,
   Route,
   Navigate,
-  useLocation
+  useLocation,
 } from 'react-router-dom';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Catalog from './pages/CatalogPage';
+import CatalogPage from './pages/CatalogPage';
 import AdminPanel from './pages/AdminPanel';
 import CartPage from './pages/CartPage';
 import OrdersPage from './pages/OrdersPage';
@@ -19,6 +19,7 @@ import NavbarComponent from './components/NavbarComponent';
 function AppWrapper() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
 
   const hideNavbarPaths = ['/login', '/register'];
@@ -49,6 +50,7 @@ function AppWrapper() {
             setIsAuthenticated(false);
             setIsAdmin(false);
           }}
+          onSearch={setSearchQuery} // <-- Добавлено
         />
       )}
 
@@ -71,7 +73,7 @@ function AppWrapper() {
           path="/catalog"
           element={
             <PrivateRoute>
-              <Catalog />
+              <CatalogPage searchQuery={searchQuery} /> 
             </PrivateRoute>
           }
         />
