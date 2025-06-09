@@ -27,6 +27,8 @@ const MovieCard: React.FC<Props> = ({ movie, onClick, addToCart }) => {
         <div>
           <Card.Title>{movie.title}</Card.Title>
           <Card.Text>{movie.topic}</Card.Text>
+          <Card.Text>{movie.releaseYear}</Card.Text>
+
         </div>
         <div className="d-flex">
           <Button

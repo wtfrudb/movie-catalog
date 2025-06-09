@@ -73,7 +73,7 @@ function AppWrapper() {
           path="/catalog"
           element={
             <PrivateRoute>
-              <CatalogPage searchQuery={searchQuery} /> 
+              <CatalogPage searchQuery={searchQuery} />
             </PrivateRoute>
           }
         />

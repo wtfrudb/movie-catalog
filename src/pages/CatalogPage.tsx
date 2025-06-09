@@ -92,7 +92,8 @@ const CatalogPage: React.FC<CatalogPageProps> = ({ searchQuery }) => {
               className="img-fluid mb-3"
               alt={selectedMovie.title}
             />
-            <p><strong>Тема:</strong> {selectedMovie.topic}</p>
+            <p><strong>Жанр:</strong> {selectedMovie.topic}</p>
+            <p><strong>Описание:</strong> {selectedMovie.description}</p>
             <p><strong>Главные актёры:</strong> {selectedMovie.mainActors}</p>
             <p><strong>Режиссёр:</strong> {selectedMovie.director}</p>
             <p><strong>Сценарист:</strong> {selectedMovie.scriptwriter}</p>
